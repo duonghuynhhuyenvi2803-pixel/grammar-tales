@@ -23,3 +23,9 @@ Copy một khối trong `js/stories.js` rồi sửa:
 - `scene`: kitchen, park, classroom, beach, street, museum
 
 Đẩy lên GitHub là Vercel tự cập nhật.
+
+## Luyện nói + bảng điểm giáo viên (Supabase)
+
+- Bài luyện nói: `js/lessons.js` · chấm điểm: `js/scoring.js` · kết nối: `js/cloud.js` · trang giáo viên: `#/teacher`
+- Cài đặt database: chạy `supabase-setup.sql` trong Supabase → SQL Editor.
+- Thêm giáo viên: `insert into public.teachers (email) values ('ten@email.com');` rồi tạo user cùng email trong Authentication → Users.

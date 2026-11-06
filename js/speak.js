@@ -10,6 +10,7 @@ const SPEAK = (() => {
     setStudent: s => G().store.set('gt_student', s),
     attempts: () => G().store.get('gt_speak', []),
     save(a) { const l = DB.attempts(); l.push(a); G().store.set('gt_speak', l.slice(-500)); },
+    markSynced(id) { const l = DB.attempts(); const a = l.find(x => x.id === id); if (a) { a.synced = true; G().store.set('gt_speak', l); } },
     best(lid, sid, mode) {
       const l = DB.attempts().filter(a => a.lessonId === lid && a.sitId === sid && (!mode || a.mode === mode));
       return l.length ? Math.max(...l.map(a => a.total)) : null;
@@ -54,8 +55,20 @@ const SPEAK = (() => {
   const browserNote = () => SR ? '' : `<div class="notice">⚠️ Trình duyệt này chưa hỗ trợ nhận giọng nói, nên bạn vẫn ghi âm được nhưng sẽ tự chấm. Dùng <b>Chrome</b> (Android, máy tính) hoặc <b>Safari</b> (iPhone) để được chấm tự động.</div>`;
 
   /* ---------- HOME ---------- */
+  let retrying = false;
+  async function retryPending() {
+    if (retrying || typeof CLOUD === 'undefined') return;
+    const weekAgo = Date.now() - 7 * 864e5;
+    const pending = DB.attempts().filter(a => a.synced === false && a.at > weekAgo && a.student);
+    if (!pending.length) return;
+    retrying = true;
+    for (const a of pending) { try { await CLOUD.submit(a); DB.markSynced(a.id); } catch { break; } }
+    retrying = false;
+  }
+
   function home() {
     const { app, esc } = G();
+    retryPending();
     const st = DB.student();
     app.innerHTML = `
       <section class="page speak-home">
@@ -76,6 +89,7 @@ const SPEAK = (() => {
             </a>`;
           }).join('')}
         </div>
+        <p class="teacher-link">Bạn là giáo viên? <a href="#/teacher">Xem điểm của lớp →</a></p>
       </section>`;
     const bindBox = () => {
       bindStudentForm(home);
@@ -351,7 +365,7 @@ const SPEAK = (() => {
       const turn = T[idx];
       const model = fillNames(turn.t, names);
       const variants = [model, ...(turn.alt || []).map(a => fillNames(a, names))];
-      let hints = 0, result = null, blobUrl = null;
+      let hints = 0, result = null, blobUrl = null, lastBlob = null;
 
       function render(state, extra = {}) {
         const hintList = p.mode === 'model' ? variants.slice(1, 1 + hints) : variants.slice(0, hints);
@@ -379,7 +393,7 @@ const SPEAK = (() => {
         const pb = G().$('#playMe'); if (pb && blobUrl) pb.onclick = () => { const au = new Audio(blobUrl); au.play().catch(() => G().toast('Không phát được bản ghi')); };
         G().$$('[data-self]', turnEl).forEach(b => b.onclick = () => {
           const v = +b.dataset.self;
-          const r = { total: v, clarity: v, pron: v, use: v, stars: v >= 85 ? 3 : v >= 60 ? 2 : 1, said: '', self: true, tips: [] };
+          const r = { total: v, clarity: v, pron: v, use: v, stars: v >= 85 ? 3 : v >= 60 ? 2 : 1, said: '', self: true, tips: [], blob: lastBlob };
           keep(r); react(r); G().toast('Đã ghi nhận'); advance();
         });
       }
@@ -419,6 +433,7 @@ const SPEAK = (() => {
             actMe().classList.remove('talking');
             if (blobUrl) URL.revokeObjectURL(blobUrl);
             blobUrl = out.blob ? URL.createObjectURL(out.blob) : null;
+            lastBlob = out.blob || null;
             if (out.srError && ['audio-capture', 'not-allowed', 'service-not-allowed', 'start-failed'].includes(out.srError) && !out.text) {
               if (!srOnly && out.srError === 'audio-capture') { srOnly = true; G().toast('Máy bạn không ghi âm và nhận giọng cùng lúc được. Thử lại lần nữa nhé (sẽ không có bản ghi để nghe lại).'); render('idle'); return; }
               if (out.srError === 'not-allowed') { G().toast('Bạn cần cho phép dùng micro để luyện nói.'); render('idle'); return; }
@@ -428,6 +443,7 @@ const SPEAK = (() => {
             const opts = { mode: p.mode, confidence: out.conf, hints: p.mode === 'free' ? hints : 0, names: allNames };
             const cands = out.alts.length ? out.alts : [out.text];
             let r = cands.map(t => SCORE.score(variants, t, opts)).reduce((a, b) => b.total > a.total ? b : a);
+            r.blob = lastBlob;
             result = r; keep(r); react(r);
             render('result', { res: r });
           }
@@ -455,12 +471,20 @@ const SPEAK = (() => {
       const avg = k => Math.round(res.reduce((a, r) => a + (r[k] || 0), 0) / Math.max(1, res.length));
       const total = avg('total'), stars = total >= 85 ? 3 : total >= 65 ? 2 : total >= 40 ? 1 : 0;
       const st = DB.student() || {};
-      DB.save({
-        id: Date.now().toString(36), student: st.name || '', code: st.code || '', lessonId: l.id, unit: l.unit, sitId: s.id,
+      const attempt = {
+        id: CLOUD.uuid(), synced: false, student: st.name || '', code: st.code || '', lessonId: l.id, unit: l.unit, sitId: s.id,
         sitTitle: s.title, role: myRole, mode: p.mode, total, clarity: avg('clarity'), pron: avg('pron'), use: avg('use'),
-        turns: mine.map((x, k) => ({ i: x.i, said: res[k].said || '', total: res[k].total, self: !!res[k].self, skipped: !!res[k].skipped })),
+        turns: mine.map((x, k) => ({ i: x.i, said: (res[k].said || '').slice(0, 300), total: res[k].total, clarity: res[k].clarity || 0, pron: res[k].pron || 0, use: res[k].use || 0, self: !!res[k].self, skipped: !!res[k].skipped })),
         at: Date.now()
-      });
+      };
+      DB.save(attempt);
+      const blobs = {}; mine.forEach((x, k) => { if (res[k].blob) blobs[x.i] = res[k].blob; });
+      const syncNote = msg => { const el = G().$('#syncNote'); if (el) el.textContent = msg; };
+      if (attempt.student) {
+        CLOUD.submit(attempt, blobs)
+          .then(() => { DB.markSynced(attempt.id); syncNote('✅ Đã gửi kết quả và ghi âm cho giáo viên.'); })
+          .catch(() => syncNote('⚠️ Chưa gửi được cho giáo viên (mạng yếu?). Web sẽ tự gửi lại lần sau bạn vào Luyện nói.'));
+      }
       setMood(actMe(), me, stars >= 2 ? 'excited' : 'happy'); playAct(actMe(), 'jump');
       setMood(actPa(), partner, 'happy'); playAct(actPa(), 'wave');
       if (stars === 3) G().confetti();
@@ -479,7 +503,7 @@ const SPEAK = (() => {
             ${p.mode === 'model' ? '<button class="btn btn-ghost" id="lvl2">Lên Mức 2 →</button>' : ''}
             <a class="btn btn-primary" href="#/unit/${l.id}">Tình huống khác</a>
           </div>
-          <small class="fine">Kết quả đã được lưu vào "Kết quả của tôi".</small>
+          <small class="fine" id="syncNote">Đang gửi kết quả cho giáo viên…</small>
         </div>`;
       G().$('#summary').scrollIntoView({ behavior: 'smooth', block: 'start' });
       G().$('#again').onclick = () => { G().getCleanup() && G().getCleanup()(); play(l, s, p); window.scrollTo(0, 0); };

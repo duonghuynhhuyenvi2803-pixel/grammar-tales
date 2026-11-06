@@ -514,3 +514,34 @@ h1, h2, h3, h4 { font-family: var(--font-display); line-height: 1.1; margin: 0; 
   .logo { font-size: 0; }
   .logo .logo-book { font-size: 26px; }
 }
+
+/* =========================================================
+   TEACHER DASHBOARD
+   ========================================================= */
+.teacher-link { text-align: center; margin-top: 30px; font-weight: 700; color: var(--ink-2); }
+.teacher-link a { color: var(--coral); font-weight: 800; }
+.loading { text-align: center; font-weight: 800; color: var(--ink-2); padding: 60px 0; }
+.login-card { max-width: 420px; margin: 20px auto 0; background: var(--card); border: 3px solid var(--ink); border-radius: var(--radius); box-shadow: var(--shadow); padding: 24px; text-align: center; }
+.login-card h2 { font-size: 30px; margin-top: 6px; }
+.login-card .field { text-align: left; }
+.login-card .btn { width: 100%; }
+.err { background: #FFD9D0; color: #A3391F; border-radius: 10px; padding: 8px 12px; font-weight: 800; }
+.filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.filters select, .filters input { font: inherit; font-weight: 700; padding: 8px 12px; border: 2.5px solid var(--ink); border-radius: 12px; background: var(--card); min-width: 0; }
+.filters input { flex: 1 1 180px; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 18px; }
+.stat { background: var(--card); border: 3px solid var(--ink); border-radius: 16px; box-shadow: 0 4px 0 var(--ink); padding: 12px 16px; }
+.stat b { display: block; font-family: var(--font-display); font-size: 34px; line-height: 1; color: var(--coral); }
+.stat span { font-weight: 800; color: var(--ink-2); font-size: 14px; }
+.tabs { margin-bottom: 14px; }
+.link-btn.name { margin: 0; font-weight: 800; color: var(--ink); text-align: left; }
+.link-btn.danger { color: #B5452B; margin: 0; }
+.res-table tr.clickable { cursor: pointer; }
+.res-table tr.clickable:hover, .res-table tr.open { background: #FFFBF2; }
+.caret { color: var(--ink-2); font-size: 12px; }
+.res-table tr.detail td { white-space: normal; background: #FFFBF2; }
+.detail-box { padding: 6px 4px; }
+.detail-box .turn-list li > div { gap: 4px; }
+.detail-box .turn-list .btn { align-self: flex-start; margin-top: 4px; }
+.muted { color: var(--ink-2); font-size: 13px; font-style: italic; }
+@media (max-width: 640px) { .stats { grid-template-columns: repeat(2, 1fr); } }

@@ -99,7 +99,7 @@
     if (cleanup) { cleanup(); cleanup = null; }
     stopSpeech();
     const h = location.hash.replace(/^#\/?/, '').split('/');
-    const navKey = ['speak', 'unit', 'talk', 'results'].includes(h[0]) ? 'speak' : (h[0] === 'studio' ? 'studio' : 'home');
+    const navKey = ['speak', 'unit', 'talk', 'results', 'teacher'].includes(h[0]) ? 'speak' : (h[0] === 'studio' ? 'studio' : 'home');
     $$('[data-nav]').forEach(a => a.classList.toggle('active', a.dataset.nav === navKey));
     window.scrollTo(0, 0);
     if (h[0] === 'studio') return viewStudio(h[1]);
@@ -109,6 +109,7 @@
     if (h[0] === 'unit') return SPEAK.unit(h[1]);
     if (h[0] === 'talk') return SPEAK.talk(h[1], h[2]);
     if (h[0] === 'results') return SPEAK.results();
+    if (h[0] === 'teacher') return TEACHER.view();
     return viewHome();
   }
   window.addEventListener('hashchange', route);
