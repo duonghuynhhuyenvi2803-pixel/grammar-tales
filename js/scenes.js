@@ -141,6 +141,51 @@ const SCENES = (() => {
     <g transform="translate(560 456)" opacity=".7"><ellipse rx="7" ry="5" fill="#5E2230"/><ellipse cx="22" cy="10" rx="7" ry="5" fill="#5E2230"/><ellipse cx="44" cy="2" rx="7" ry="5" fill="#5E2230"/></g>
   `);
 
-  const MAP = { kitchen, park, classroom, beach, street, museum };
+
+  const house = (x, y, w, h, wall, roof, door = '#8A5A3C') => `<g transform="translate(${x} ${y})">
+    <rect x="0" y="${h * .35}" width="${w}" height="${h * .65}" fill="${wall}" stroke="#2B2340" stroke-width="3"/>
+    <path d="M-12 ${h * .37} L${w / 2} 0 L${w + 12} ${h * .37} Z" fill="${roof}" stroke="#2B2340" stroke-width="3" stroke-linejoin="round"/>
+    <rect x="${w * .4}" y="${h * .62}" width="${w * .2}" height="${h * .38}" fill="${door}"/>
+    <rect x="${w * .1}" y="${h * .5}" width="${w * .2}" height="${h * .18}" fill="#BFE6FF" stroke="#2B2340" stroke-width="2"/>
+    <rect x="${w * .7}" y="${h * .5}" width="${w * .2}" height="${h * .18}" fill="#FFE9A8" stroke="#2B2340" stroke-width="2"/></g>`;
+
+  const neighborhood = () => wrap(`
+    <rect width="1000" height="560" fill="url(#skyHood)"/>
+    <circle cx="880" cy="90" r="46" fill="#FFD84A" class="pulse"/>
+    ${cloud(120, 80, .8)}${cloud(520, 60, .6)}
+    <rect x="0" y="300" width="1000" height="140" fill="#9ED98A"/>
+    ${house(40, 210, 170, 200, '#FFB38A', '#B5452B')}
+    ${house(300, 230, 150, 180, '#BFE6FF', '#4C8DF6')}
+    ${house(560, 200, 180, 210, '#FFE9A8', '#3BAA5C')}
+    ${house(820, 230, 140, 180, '#F4C3D6', '#7B5CF0')}
+    ${tree(250, 330, .6)}${tree(500, 340, .55)}${tree(780, 330, .6)}
+    ${Array.from({ length: 25 }, (_, i) => `<rect x="${i * 40}" y="410" width="8" height="30" fill="#F4F1EA" stroke="#C9B79C"/>`).join('')}
+    <rect x="0" y="416" width="1000" height="6" fill="#F4F1EA"/>
+    <rect x="0" y="440" width="1000" height="120" fill="#D9D3C4"/>
+    ${Array.from({ length: 12 }, (_, i) => `<line x1="${i * 90}" y1="440" x2="${i * 90}" y2="560" stroke="#C4BCAA" stroke-width="3"/>`).join('')}
+  `, sky('skyHood', '#86CDF5', '#DDF3FF'));
+
+  const restaurant = () => wrap(`
+    <rect width="1000" height="560" fill="#2F5D50"/>
+    <g opacity=".18">${Array.from({ length: 14 }, (_, i) => `<path d="M${i * 80} 0 q20 40 0 80 q-20 40 0 80 q20 40 0 80 q-20 40 0 80 q20 40 0 80" stroke="#F4F1EA" stroke-width="3" fill="none"/>`).join('')}</g>
+    <rect x="0" y="0" width="1000" height="34" fill="#244A40"/>
+    ${[160, 500, 840].map(x => `<g transform="translate(${x} 34)"><line x1="0" y1="0" x2="0" y2="60" stroke="#2B2340" stroke-width="3"/>
+      <path d="M-34 60 L34 60 L22 92 L-22 92 Z" fill="#FFC94A" stroke="#2B2340" stroke-width="3"/><ellipse cx="0" cy="100" rx="60" ry="14" fill="#FFE27A" opacity=".25" class="pulse"/></g>`).join('')}
+    <g transform="translate(330 120)"><rect width="340" height="150" rx="10" fill="#F4F1EA" stroke="#8A5A3C" stroke-width="10"/>
+      <text x="170" y="48" text-anchor="middle" font-family="Baloo 2, cursive" font-size="34" fill="#2F5D50">Green Garden</text>
+      <text x="170" y="84" text-anchor="middle" font-family="Baloo 2, cursive" font-size="20" fill="#B5452B">Today: Beef steak · Soup</text>
+      <path d="M110 110 q60 -20 120 0" stroke="#3BAA5C" stroke-width="6" fill="none"/><circle cx="170" cy="118" r="8" fill="#FF7A59"/></g>
+    <g transform="translate(60 120)"><rect width="170" height="200" rx="8" fill="#BFE6FF" stroke="#F4F1EA" stroke-width="10"/>
+      <rect x="80" y="0" width="10" height="200" fill="#F4F1EA"/><circle cx="130" cy="50" r="14" fill="#F4F1EA" opacity=".9"/></g>
+    <g transform="translate(790 160)"><path d="M0 120 Q-10 40 30 0 Q70 40 60 120 Z" fill="#3BAA5C"/><rect x="10" y="118" width="40" height="40" rx="6" fill="#B5452B"/></g>
+    <rect x="0" y="330" width="1000" height="110" fill="#8A5A3C"/>
+    <rect x="0" y="330" width="1000" height="10" fill="#6B4329"/>
+    <g transform="translate(420 300)"><rect width="160" height="14" rx="4" fill="#F4F1EA"/><path d="M10 14 L150 14 L140 60 L20 60 Z" fill="#FFFFFF" opacity=".85"/>
+      <rect x="30" y="-18" width="12" height="18" rx="3" fill="#FF7A59"/><rect x="118" y="-22" width="12" height="22" rx="3" fill="#FFC94A"/><ellipse cx="80" cy="-4" rx="26" ry="7" fill="#fff" stroke="#C9B79C"/></g>
+    <rect x="0" y="440" width="1000" height="120" fill="#B87A4B"/>
+    ${Array.from({ length: 10 }, (_, i) => `<line x1="${i * 110}" y1="440" x2="${i * 110 - 50}" y2="560" stroke="#A56A3D" stroke-width="4"/>`).join('')}
+  `);
+
+  const MAP = { kitchen, park, classroom, beach, street, museum, neighborhood, restaurant };
   return { get: name => (MAP[name] || park)(), names: Object.keys(MAP) };
 })();

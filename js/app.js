@@ -99,11 +99,16 @@
     if (cleanup) { cleanup(); cleanup = null; }
     stopSpeech();
     const h = location.hash.replace(/^#\/?/, '').split('/');
-    $$('[data-nav]').forEach(a => a.classList.toggle('active', (h[0] || 'home') === a.dataset.nav || (h[0] === '' && a.dataset.nav === 'home')));
+    const navKey = ['speak', 'unit', 'talk', 'results'].includes(h[0]) ? 'speak' : (h[0] === 'studio' ? 'studio' : 'home');
+    $$('[data-nav]').forEach(a => a.classList.toggle('active', a.dataset.nav === navKey));
     window.scrollTo(0, 0);
     if (h[0] === 'studio') return viewStudio(h[1]);
     if (h[0] === 'cast') return viewCast(h[1]);
     if (h[0] === 'play') return viewPlay(h[1]);
+    if (h[0] === 'speak') return SPEAK.home();
+    if (h[0] === 'unit') return SPEAK.unit(h[1]);
+    if (h[0] === 'talk') return SPEAK.talk(h[1], h[2]);
+    if (h[0] === 'results') return SPEAK.results();
     return viewHome();
   }
   window.addEventListener('hashchange', route);
@@ -543,5 +548,9 @@
     document.body.appendChild(box); setTimeout(() => box.remove(), 4200);
   }
 
+  window.GT = {
+    $, $$, app, esc, store, toast, actorHTML, setMood, playAct, speak, stopSpeech, confetti,
+    chars: () => chars, setCleanup: fn => { cleanup = fn; }, getCleanup: () => cleanup, route
+  };
   route();
 })();
